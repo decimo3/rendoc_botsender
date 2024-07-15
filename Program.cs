@@ -1,4 +1,4 @@
-﻿using OpenQA.Selenium;
+using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
 static void ConsoleWrapper(String? mensagem)
@@ -125,7 +125,7 @@ try
 {
     var corrente = System.IO.Directory.GetCurrentDirectory();
     var configuracoes = ArquivoConfiguracao("doc.conf", '=');
-    var profundidade = Int32.Parse(configuracoes["PROFUNDIDADE"]);
+    var profundidade = Int32.Parse(configuracoes["PROFUNDIDADE"]) - 1;
     var service = ChromeDriverService.CreateDefaultService(corrente);
     var options = new ChromeOptions();
     options.BinaryLocation = configuracoes["GCHROME"];
@@ -142,7 +142,7 @@ try
             Thread.Sleep(1_000);
         }
         ConsoleWrapper("Iniciando o escaneamento...");
-        NavegacaoPastas(driver, configuracoes["CAMINHO"], 0, 3);
+        NavegacaoPastas(driver, configuracoes["CAMINHO"], 0, profundidade);
     }
 }
 catch (System.Exception erro)
