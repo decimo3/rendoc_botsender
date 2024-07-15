@@ -43,6 +43,14 @@ static void EnviarArquivos(WebDriver driver, String nota, String inst, String op
     IAlert alert = wait.Until(a => a.SwitchTo().Alert());
     ConsoleWrapper(alert.Text);
     alert.Accept();
+    foreach (var file in files)
+    {
+        var dir = Path.GetDirectoryName(file) ?? throw new DirectoryNotFoundException();
+        var ext = Path.GetExtension(file);
+        var oldfilename = Path.GetFileNameWithoutExtension(file);
+        var newfilename = oldfilename + ".send" + ext;
+        System.IO.File.Move(file, Path.Combine(dir, newfilename));
+    }
 }
 try
 {
