@@ -42,6 +42,7 @@ static void EnviarArquivos(WebDriver driver, String nota, String inst, String op
     WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(60));
     IAlert alert = wait.Until(a => a.SwitchTo().Alert());
     ConsoleWrapper(alert.Text);
+    Thread.Sleep(500);
     alert.Accept();
     foreach (var file in files)
     {
@@ -142,5 +143,7 @@ catch (System.Exception erro)
 }
 finally
 {
+    ConsoleWrapper("Sistema finalizado! Aperte qualquer tecla para sair...");
     Console.ReadLine();
+    ConsoleWrapper("bye!");
 }
