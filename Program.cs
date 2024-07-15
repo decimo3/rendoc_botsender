@@ -1,4 +1,4 @@
-﻿using OpenQA.Selenium;
+using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
 static void ConsoleWrapper(String? mensagem)
@@ -31,7 +31,6 @@ static void EnviarArquivos(WebDriver driver, String nota, String inst, String op
     if (!files.Any()) return;
     var stringinputfiles = (files.Count > 1) ? String.Join(" \n", files) : files.Single();
     ConsoleWrapper($"{{Nota: {nota}, Inst: {inst}, Files: \"{stringinputfiles}\"}}");
-    driver.Navigate().Refresh();
     if (driver.FindElement(By.Id("titulo")).Text == "Página de Pesquisa")
         driver.FindElement(By.Name("Btnincluir")).Click();
     driver.FindElement(By.Name("TxtNI")).SendKeys(inst);
