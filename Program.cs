@@ -53,11 +53,78 @@ static void EnviarArquivos(WebDriver driver, String nota, String inst, String op
         System.IO.File.Move(file, Path.Combine(dir, newfilename));
     }
 }
+static void NavegacaoPastas(WebDriver driver, String caminho_atual, Int32 profundidade_atual, Int32 profundidade_maxima)
+{
+    if (profundidade_atual > profundidade_maxima) return;
+    foreach (var pasta in Directory.GetDirectories(caminho_atual))
+    {
+        if (profundidade_atual == profundidade_maxima)
+            PrepararArquivos(driver, pasta);
+        NavegacaoPastas(driver, pasta, profundidade_atual + 1, profundidade_maxima);
+    }
+}
+static void PrepararArquivos(WebDriver driver, String diretorio)
+{
+    var basename = diretorio.Split('\\').Last();
+    var argumentos = basename.Split(' ');
+    if (argumentos.Length < 3)
+    {
+        ConsoleWrapper($"Diretório {basename} fora do padrão!");
+        return;
+    }
+    if (argumentos.Contains("OK"))
+    {
+        ConsoleWrapper($"Diretório {basename} Já foi enviado!");
+        return;
+    }
+    var arquivos = Directory.GetFiles(diretorio);
+    ConsoleWrapper($"Lista de arquivos no diretório '{basename}':");
+    foreach (var arquivo in arquivos) ConsoleWrapper(arquivo);
+    var fotos = arquivos.Where(f => Path.GetExtension(f) == ".jpeg").ToList();
+    var videos = arquivos.Where(f => Path.GetExtension(f) == ".mp4").ToList();
+    var termos = arquivos.Where(f => Path.GetExtension(f) == ".pdf").ToList();
+    if (arquivos.Length != (termos.Count + fotos.Count + videos.Count))
+    {
+        ConsoleWrapper($"Diretório {basename} contém arquivos não suportados!");
+        return;
+    }
+    ConsoleWrapper("Enviando os arquivos com a(s) 'evidências da nota de serviço'...");
+    while (true)
+    {
+        fotos = Directory.GetFiles(diretorio).Where(
+            f => Path.GetExtension(f) == ".jpeg" &&
+            !Path.GetFileNameWithoutExtension(f).Contains(".send")).ToList();
+        if (fotos.Any())
+        {
+            if (fotos.Count > 5) fotos = fotos.Take(5).ToList();
+            EnviarArquivos(driver, argumentos[0], argumentos[1], "Foto", fotos);
+        }
+        else
+        {
+            break;
+        }
+    }
+    ConsoleWrapper("Enviando os arquivos com a(s) 'filmagens da ocorrência de inspeção'...");
+    foreach (var video in videos)
+    {
+        if (Path.GetFileNameWithoutExtension(video).Contains(".send")) continue;
+        EnviarArquivos(driver, argumentos[0], argumentos[1], "Vídeo das Inspeções", new List<String> { video });
+    }
+    ConsoleWrapper("Enviando os arquivos com o(s) 'Termo de Ocorrência e Inspeção'...");
+    foreach (var termo in termos)
+    {
+        if (Path.GetFileNameWithoutExtension(termo).Contains(".send")) continue;
+        EnviarArquivos(driver, argumentos[0], argumentos[1], "TOI-Termo de Ocorrência e Inspeção", new List<String> { termo });
+    }
+    // Rename directory to append "OK"
+    var newDirName = diretorio + " OK";
+    Directory.Move(diretorio, newDirName);
+    ConsoleWrapper($"Envio dos arquivos da pasta {basename} efetuado com sucesso!");
+}
 try
 {
     var corrente = System.IO.Directory.GetCurrentDirectory();
     var configuracoes = ArquivoConfiguracao("doc.conf", '=');
-    var diretorios = System.IO.Directory.GetDirectories(corrente);
     var profundidade = Int32.Parse(configuracoes["PROFUNDIDADE"]);
     var service = ChromeDriverService.CreateDefaultService(corrente);
     var options = new ChromeOptions();
@@ -75,65 +142,7 @@ try
             Thread.Sleep(1_000);
         }
         ConsoleWrapper("Iniciando o escaneamento...");
-        foreach (var diretorio in diretorios)
-        {
-            var basename = diretorio.Split('\\').Last();
-            if (basename == "tmp" || basename == "selenium-manager") continue;
-            var argumentos = basename.Split(' ');
-            if (argumentos.Length < 3)
-            {
-                ConsoleWrapper($"Diretório {basename} fora do padrão!");
-                continue;
-            }
-            if (argumentos.Contains("OK"))
-            {
-                ConsoleWrapper($"Diretório {basename} Já foi enviado!");
-                continue;
-            }
-            var arquivos = Directory.GetFiles(diretorio);
-            ConsoleWrapper($"Lista de arquivos no diretório '{basename}':");
-            foreach (var arquivo in arquivos) ConsoleWrapper(arquivo);
-            var fotos = arquivos.Where(f => Path.GetExtension(f) == ".jpeg").ToList();
-            var videos = arquivos.Where(f => Path.GetExtension(f) == ".mp4").ToList();
-            var termos = arquivos.Where(f => Path.GetExtension(f) == ".pdf").ToList();
-            if (arquivos.Count() != (termos.Count + fotos.Count + videos.Count))
-            {
-                ConsoleWrapper($"Diretório {basename} contém arquivos não suportados!");
-                continue;
-            }
-            ConsoleWrapper("Enviando os arquivos com a(s) 'evidências da nota de serviço'...");
-            while (true)
-            {
-                fotos = Directory.GetFiles(diretorio).Where(
-                    f => Path.GetExtension(f) == ".jpeg" &&
-                    !Path.GetFileNameWithoutExtension(f).Contains(".send")).ToList();
-                if(fotos.Any())
-                {
-                    if(fotos.Count > 5) fotos = fotos.Take(5).ToList();
-                    EnviarArquivos(driver, argumentos[0], argumentos[1], "Foto", fotos);
-                }
-                else
-                {
-                    break;
-                }
-            }
-            ConsoleWrapper("Enviando os arquivos com a(s) 'filmagens da ocorrência de inspeção'...");
-            foreach (var video in videos)
-            {
-                if(Path.GetFileNameWithoutExtension(video).Contains(".send")) continue;
-                EnviarArquivos(driver, argumentos[0], argumentos[1], "Vídeo das Inspeções", new List<String> { video });
-            }
-            ConsoleWrapper("Enviando os arquivos com o(s) 'Termo de Ocorrência e Inspeção'...");
-            foreach (var termo in termos)
-            {
-                if(Path.GetFileNameWithoutExtension(termo).Contains(".send")) continue;
-                EnviarArquivos(driver, argumentos[0], argumentos[1], "TOI-Termo de Ocorrência e Inspeção", new List<String> { termo });
-            }
-            // Rename directory to append "OK"
-            var newDirName = diretorio + " OK";
-            Directory.Move(diretorio, newDirName);
-            ConsoleWrapper($"Envio dos arquivos da pasta {basename} efetuado com sucesso!");
-        }
+        NavegacaoPastas(driver, configuracoes["CAMINHO"], 0, 3);
     }
 }
 catch (System.Exception erro)
