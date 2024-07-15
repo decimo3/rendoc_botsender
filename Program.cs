@@ -1,4 +1,4 @@
-using OpenQA.Selenium;
+﻿using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
 static void ConsoleWrapper(String? mensagem)
@@ -92,22 +92,41 @@ try
             var arquivos = Directory.GetFiles(diretorio);
             ConsoleWrapper($"Lista de arquivos no diretório '{basename}':");
             foreach (var arquivo in arquivos) ConsoleWrapper(arquivo);
-            var termos = arquivos.Where(f => Path.GetExtension(f) == ".pdf").ToList();
-            var fotos = arquivos.Where(f => Path.GetExtension(f) == ".jpg" || Path.GetExtension(f) == ".jpeg").ToList();
+            var fotos = arquivos.Where(f => Path.GetExtension(f) == ".jpeg").ToList();
             var videos = arquivos.Where(f => Path.GetExtension(f) == ".mp4").ToList();
+            var termos = arquivos.Where(f => Path.GetExtension(f) == ".pdf").ToList();
             if (arquivos.Count() != (termos.Count + fotos.Count + videos.Count))
             {
                 ConsoleWrapper($"Diretório {basename} contém arquivos não suportados!");
                 continue;
             }
-            ConsoleWrapper("Enviando os arquivos com o(s) 'Termo de Ocorrência e Inspeção'...");
-            EnviarArquivos(driver, argumentos[0], argumentos[1], "TOI-Termo de Ocorrência e Inspeção", termos);
             ConsoleWrapper("Enviando os arquivos com a(s) 'evidências da nota de serviço'...");
-            EnviarArquivos(driver, argumentos[0], argumentos[1], "Foto", fotos);
+            while (true)
+            {
+                fotos = Directory.GetFiles(diretorio).Where(
+                    f => Path.GetExtension(f) == ".jpeg" &&
+                    !Path.GetFileNameWithoutExtension(f).Contains(".send")).ToList();
+                if(fotos.Any())
+                {
+                    if(fotos.Count > 5) fotos = fotos.Take(5).ToList();
+                    EnviarArquivos(driver, argumentos[0], argumentos[1], "Foto", fotos);
+                }
+                else
+                {
+                    break;
+                }
+            }
             ConsoleWrapper("Enviando os arquivos com a(s) 'filmagens da ocorrência de inspeção'...");
             foreach (var video in videos)
             {
+                if(Path.GetFileNameWithoutExtension(video).Contains(".send")) continue;
                 EnviarArquivos(driver, argumentos[0], argumentos[1], "Vídeo das Inspeções", new List<String> { video });
+            }
+            ConsoleWrapper("Enviando os arquivos com o(s) 'Termo de Ocorrência e Inspeção'...");
+            foreach (var termo in termos)
+            {
+                if(Path.GetFileNameWithoutExtension(termo).Contains(".send")) continue;
+                EnviarArquivos(driver, argumentos[0], argumentos[1], "TOI-Termo de Ocorrência e Inspeção", new List<String> { termo });
             }
             // Rename directory to append "OK"
             var newDirName = diretorio + " OK";
