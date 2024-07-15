@@ -125,13 +125,14 @@ try
 {
     var corrente = System.IO.Directory.GetCurrentDirectory();
     var configuracoes = ArquivoConfiguracao("doc.conf", '=');
+    var website = $"http://{configuracoes["USUARIO"]}:{configuracoes["PALAVRA"]}@{configuracoes["BASEURL"]}/ren/";
     var profundidade = Int32.Parse(configuracoes["PROFUNDIDADE"]) - 1;
     var service = ChromeDriverService.CreateDefaultService(corrente);
     var options = new ChromeOptions();
     options.BinaryLocation = configuracoes["GCHROME"];
     options.AddArgument($"--user-data-dir={corrente}\\tmp\\");
-    options.AddArgument($"--app={configuracoes["WEBSITE"]}");
-    options.AddArgument($"--unsafely-treat-insecure-origin-as-secure={configuracoes["WEBSITE"]}");
+    options.AddArgument($"--app={website}");
+    options.AddArgument($"--unsafely-treat-insecure-origin-as-secure={configuracoes["BASEURL"]}");
     ConsoleWrapper("Iniciando a navegação automatizada...");
     using (var driver = new ChromeDriver(service, options))
     {
