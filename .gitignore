@@ -2,5 +2,6 @@ obj
 bin
 tmp
 out
+dir
 *.conf
-chromedriver.exe
+chromedriver-win64
