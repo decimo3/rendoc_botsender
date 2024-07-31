@@ -1,6 +1,121 @@
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium.DevTools.V124.ServiceWorker;
 using OpenQA.Selenium.Support.UI;
+static Int32 AppVersionByProductVersion(string app_path)
+{
+    if(!File.Exists(app_path))
+        throw new FileNotFoundException();
+    using(var process = new System.Diagnostics.Process())
+    {
+        process.StartInfo.FileName = "powershell";
+        process.StartInfo.Arguments = $"-c (Get-Item \"{app_path}\").VersionInfo.ProductVersion.ToString()";
+        process.StartInfo.UseShellExecute = false;
+        process.StartInfo.RedirectStandardOutput = true;
+        process.StartInfo.CreateNoWindow = true;
+        process.Start();
+        var version_string = process.StandardOutput.ReadToEnd();
+        var regex = new System.Text.RegularExpressions.Regex(@"\d+");
+        var match = regex.Match(version_string);
+        if(!match.Success) throw new InvalidOperationException("Não foi encontrada a versão da aplicação nas propriedades do arquivo!");
+        return Int32.Parse(match.Value);
+    }
+}
+static Int32 AppVersionByApplicationFlag(string app_path)
+{
+    if(!File.Exists(app_path))
+        throw new FileNotFoundException();
+    using(var process = new System.Diagnostics.Process())
+    {
+        process.StartInfo.FileName = app_path;
+        process.StartInfo.Arguments = "--version";
+        process.StartInfo.UseShellExecute = false;
+        process.StartInfo.RedirectStandardOutput = true;
+        process.StartInfo.CreateNoWindow = true;
+        process.Start();
+        var version_string = process.StandardOutput.ReadToEnd();
+        var regex = new System.Text.RegularExpressions.Regex(@"\d+");
+        var match = regex.Match(version_string);
+        if(!match.Success) throw new InvalidOperationException("Não foi encontrada a versão da aplicação nas propriedades do arquivo!");
+        return Int32.Parse(match.Value);
+    }
+}
+static String CheckNewerChromeDriverVersion()
+{
+    // https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE_116
+    using(var client = new HttpClient())
+    {
+        var last_version_url = "https://googlechromelabs.github.io/chrome-for-testing/LATEST_RELEASE_STABLE";
+        var request = new System.Net.Http.HttpRequestMessage(HttpMethod.Get, last_version_url);
+        var response = client.Send(request);
+        response.EnsureSuccessStatusCode();
+        using(var stream = new StreamReader(response.Content.ReadAsStream()))
+        {
+            return stream.ReadToEnd();
+        }
+    }
+}
+static void DownloadNewerChromeDriver(String driver_version)
+{
+    // https://storage.googleapis.com/chrome-for-testing-public/127.0.6533.88/win64/chromedriver-win64.zip
+    using(var client = new HttpClient())
+    {
+        var last_version_url = $"https://storage.googleapis.com/chrome-for-testing-public/{driver_version}/win64/chromedriver-win64.zip";
+        var request = new System.Net.Http.HttpRequestMessage(HttpMethod.Get, last_version_url);
+        var response = client.Send(request);
+        response.EnsureSuccessStatusCode();
+        using(var stream = response.Content.ReadAsStream())
+        {
+            using(var file = System.IO.File.Create("chromedriver-win64.zip"))
+            {
+                stream.CopyTo(file);
+                file.Flush();
+            }
+        }
+    }
+}
+
+static void DeleteOlderDriverFile()
+{
+    var files = System.IO.Directory.GetFiles("chromedriver-win64");
+    foreach (var file in files) System.IO.File.Delete(file);
+}
+
+static void UnzipChromeDriverFile()
+{
+    var current_folder = System.IO.Directory.GetCurrentDirectory();
+    System.IO.Compression.ZipFile.ExtractToDirectory("chromedriver-win64.zip", current_folder);
+}
+
+static void Update(String chromepath, String driverpath)
+{
+    try
+    {
+        Console.WriteLine("Verificando as versões do browser e do driver...");
+        var chrome_version = AppVersionByProductVersion(chromepath);
+        Console.WriteLine($"Chrome major version: {chrome_version}.");
+        var driver_version = AppVersionByApplicationFlag(driverpath);
+        Console.WriteLine($"Driver major version: {driver_version}.");
+        if(driver_version >= chrome_version) return;
+        Console.WriteLine("Buscando as novas versões do chromedriver...");
+        var newer_version = CheckNewerChromeDriverVersion();
+        Console.WriteLine($"Versão do chromedriver no canal STABLE: {newer_version}");
+        Console.Write("Baixando a nova versão do chromedriver...");
+        DownloadNewerChromeDriver(newer_version);
+        Console.Write(" Download concluído!\n");
+        Console.Write("Removendo a versão antiga do chromedriver...");
+        DeleteOlderDriverFile();
+        Console.Write(" Remoção concluída!\n");
+        Console.Write("Descompactando atualização...");
+        UnzipChromeDriverFile();
+        Console.Write(" Atualização concluída!\n");
+    }
+    catch (System.Exception erro)
+    {
+        Console.WriteLine(erro.Message);
+        Console.WriteLine(erro.StackTrace);
+    }
+}
 static void ConsoleWrapper(String? mensagem)
 {
     if(mensagem == null) return;
@@ -124,10 +239,12 @@ static void PrepararArquivos(WebDriver driver, String diretorio)
 try
 {
     var corrente = System.IO.Directory.GetCurrentDirectory();
+    var driverpath = System.IO.Path.Combine(corrente, "chromedriver-win64/chromedriver.exe");
     var configuracoes = ArquivoConfiguracao("doc.conf", '=');
+    Update(configuracoes["GCHROME"], driverpath);
     var website = $"http://{configuracoes["USUARIO"]}:{configuracoes["PALAVRA"]}@{configuracoes["BASEURL"]}/ren/";
     var profundidade = Int32.Parse(configuracoes["PROFUNDIDADE"]) - 1;
-    var service = ChromeDriverService.CreateDefaultService(corrente);
+    var service = ChromeDriverService.CreateDefaultService(driverpath);
     var options = new ChromeOptions();
     options.BinaryLocation = configuracoes["GCHROME"];
     options.AddArgument($"--user-data-dir={corrente}\\tmp\\");
