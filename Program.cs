@@ -236,41 +236,45 @@ static void PrepararArquivos(WebDriver driver, String diretorio)
     Directory.Move(diretorio, newDirName);
     ConsoleWrapper($"Envio dos arquivos da pasta {basename} efetuado com sucesso!");
 }
-try
+static void Main()
 {
-    var corrente = System.IO.Directory.GetCurrentDirectory();
-    var driverpath = System.IO.Path.Combine(corrente, "chromedriver-win64/chromedriver.exe");
-    var configuracoes = ArquivoConfiguracao("doc.conf", '=');
-    Update(configuracoes["GCHROME"], driverpath);
-    var website = $"http://{configuracoes["USUARIO"]}:{configuracoes["PALAVRA"]}@{configuracoes["BASEURL"]}/ren/";
-    var profundidade = Int32.Parse(configuracoes["PROFUNDIDADE"]) - 1;
-    var service = ChromeDriverService.CreateDefaultService(driverpath);
-    var options = new ChromeOptions();
-    options.BinaryLocation = configuracoes["GCHROME"];
-    options.AddArgument($"--user-data-dir={corrente}\\tmp\\");
-    options.AddArgument($"--app={website}");
-    options.AddArgument($"--unsafely-treat-insecure-origin-as-secure={configuracoes["BASEURL"]}");
-    ConsoleWrapper("Iniciando a navegação automatizada...");
-    using (var driver = new ChromeDriver(service, options))
+    try
     {
-        driver.Manage().Window.Maximize();
-        ConsoleWrapper("Aguardando a liberação da página...");
-        while (!driver.FindElements(By.Id("titulo")).Any())
+        var corrente = System.IO.Directory.GetCurrentDirectory();
+        var driverpath = System.IO.Path.Combine(corrente, "chromedriver-win64/chromedriver.exe");
+        var configuracoes = ArquivoConfiguracao("doc.conf", '=');
+        Update(configuracoes["GCHROME"], driverpath);
+        var website = $"http://{configuracoes["USUARIO"]}:{configuracoes["PALAVRA"]}@{configuracoes["BASEURL"]}/ren/";
+        var profundidade = Int32.Parse(configuracoes["PROFUNDIDADE"]) - 1;
+        var service = ChromeDriverService.CreateDefaultService(driverpath);
+        var options = new ChromeOptions();
+        options.BinaryLocation = configuracoes["GCHROME"];
+        options.AddArgument($"--user-data-dir={corrente}\\tmp\\");
+        options.AddArgument($"--app={website}");
+        options.AddArgument($"--unsafely-treat-insecure-origin-as-secure={configuracoes["BASEURL"]}");
+        ConsoleWrapper("Iniciando a navegação automatizada...");
+        using (var driver = new ChromeDriver(service, options))
         {
-            Thread.Sleep(1_000);
+            driver.Manage().Window.Maximize();
+            ConsoleWrapper("Aguardando a liberação da página...");
+            while (!driver.FindElements(By.Id("titulo")).Any())
+            {
+                Thread.Sleep(1_000);
+            }
+            ConsoleWrapper("Iniciando o escaneamento...");
+            NavegacaoPastas(driver, configuracoes["CAMINHO"], 0, profundidade);
         }
-        ConsoleWrapper("Iniciando o escaneamento...");
-        NavegacaoPastas(driver, configuracoes["CAMINHO"], 0, profundidade);
+    }
+    catch (System.Exception erro)
+    {
+        ConsoleWrapper(erro.Message);
+        ConsoleWrapper(erro.StackTrace);
+    }
+    finally
+    {
+        ConsoleWrapper("Sistema finalizado! Aperte qualquer tecla para sair...");
+        Console.ReadLine();
+        ConsoleWrapper("bye!");
     }
 }
-catch (System.Exception erro)
-{
-    ConsoleWrapper(erro.Message);
-    ConsoleWrapper(erro.StackTrace);
-}
-finally
-{
-    ConsoleWrapper("Sistema finalizado! Aperte qualquer tecla para sair...");
-    Console.ReadLine();
-    ConsoleWrapper("bye!");
-}
+Main();
