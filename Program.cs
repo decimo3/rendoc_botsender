@@ -2,40 +2,23 @@ using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.DevTools.V124.ServiceWorker;
 using OpenQA.Selenium.Support.UI;
-static Int32 AppVersionByProductVersion(string app_path)
+static Int32 GetVersionAplicationOutput(String aplication, String arguments)
 {
-    if(!File.Exists(app_path))
-        throw new FileNotFoundException();
     using(var process = new System.Diagnostics.Process())
     {
-        process.StartInfo.FileName = "powershell";
-        process.StartInfo.Arguments = $"-c (Get-Item \"{app_path}\").VersionInfo.ProductVersion.ToString()";
+        process.StartInfo.FileName = aplication;
+        process.StartInfo.Arguments = arguments;
         process.StartInfo.UseShellExecute = false;
         process.StartInfo.RedirectStandardOutput = true;
+        process.StartInfo.RedirectStandardError = true;
         process.StartInfo.CreateNoWindow = true;
         process.Start();
-        var version_string = process.StandardOutput.ReadToEnd();
+        var stdoutput = process.StandardOutput.ReadToEnd();
+        var erroutput = process.StandardError.ReadToEnd();
+        process.WaitForExit();
+        if(process.ExitCode != 0) throw new InvalidOperationException($"Erro ao executar o processo {process.ExitCode}: {erroutput}");
         var regex = new System.Text.RegularExpressions.Regex(@"\d+");
-        var match = regex.Match(version_string);
-        if(!match.Success) throw new InvalidOperationException("Não foi encontrada a versão da aplicação nas propriedades do arquivo!");
-        return Int32.Parse(match.Value);
-    }
-}
-static Int32 AppVersionByApplicationFlag(string app_path)
-{
-    if(!File.Exists(app_path))
-        throw new FileNotFoundException();
-    using(var process = new System.Diagnostics.Process())
-    {
-        process.StartInfo.FileName = app_path;
-        process.StartInfo.Arguments = "--version";
-        process.StartInfo.UseShellExecute = false;
-        process.StartInfo.RedirectStandardOutput = true;
-        process.StartInfo.CreateNoWindow = true;
-        process.Start();
-        var version_string = process.StandardOutput.ReadToEnd();
-        var regex = new System.Text.RegularExpressions.Regex(@"\d+");
-        var match = regex.Match(version_string);
+        var match = regex.Match(stdoutput);
         if(!match.Success) throw new InvalidOperationException("Não foi encontrada a versão da aplicação nas propriedades do arquivo!");
         return Int32.Parse(match.Value);
     }
@@ -74,27 +57,25 @@ static void DownloadNewerChromeDriver(String driver_version)
         }
     }
 }
-
 static void DeleteOlderDriverFile()
 {
     var files = System.IO.Directory.GetFiles("chromedriver-win64");
     foreach (var file in files) System.IO.File.Delete(file);
 }
-
 static void UnzipChromeDriverFile()
 {
     var current_folder = System.IO.Directory.GetCurrentDirectory();
     System.IO.Compression.ZipFile.ExtractToDirectory("chromedriver-win64.zip", current_folder);
 }
-
 static void Update(String chromepath, String driverpath)
 {
     try
     {
         Console.WriteLine("Verificando as versões do browser e do driver...");
-        var chrome_version = AppVersionByProductVersion(chromepath);
+        var argumento = $"-c \"(Get-Item '{chromepath}').VersionInfo.ProductVersion.ToString()\"";
+        var chrome_version = GetVersionAplicationOutput("powershell", argumento);
         Console.WriteLine($"Chrome major version: {chrome_version}.");
-        var driver_version = AppVersionByApplicationFlag(driverpath);
+        var driver_version = GetVersionAplicationOutput(driverpath, "--version");
         Console.WriteLine($"Driver major version: {driver_version}.");
         if(driver_version >= chrome_version) return;
         Console.WriteLine("Buscando as novas versões do chromedriver...");
