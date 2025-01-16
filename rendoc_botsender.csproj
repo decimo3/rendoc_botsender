@@ -6,11 +6,14 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <ApplicationIcon>appicon.ico</ApplicationIcon>
     <Nullable>enable</Nullable>
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Selenium.WebDriver" Version="4.22.0" />
-    <None Include="doc.conf" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="doc.conf.dev" CopyToOutputDirectory="PreserveNewest" />
     <None Include="appicon.ico" CopyToOutputDirectory="PreserveNewest" />
     <None Include="chromedriver-win64\**" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
