@@ -176,7 +176,9 @@ static void PrepararArquivos(WebDriver driver, String diretorio)
     var arquivos = Directory.GetFiles(diretorio);
     ConsoleWrapper($"Lista de arquivos no diretório '{basename}':");
     foreach (var arquivo in arquivos) ConsoleWrapper(arquivo);
-    var fotos = arquivos.Where(f => Path.GetExtension(f) == ".jpeg").ToList();
+    var fotos = arquivos.Where(
+        f => Path.GetExtension(f) == ".jpeg" || Path.GetExtension(f) == ".jpg"
+        ).ToList();
     var videos = arquivos.Where(f => Path.GetExtension(f) == ".mp4").ToList();
     var termos = arquivos.Where(f => Path.GetExtension(f) == ".pdf").ToList();
     if (arquivos.Length != (termos.Count + fotos.Count + videos.Count))
@@ -188,8 +190,8 @@ static void PrepararArquivos(WebDriver driver, String diretorio)
     while (true)
     {
         fotos = Directory.GetFiles(diretorio).Where(
-            f => Path.GetExtension(f) == ".jpeg" &&
-            !Path.GetFileNameWithoutExtension(f).Contains(".send")).ToList();
+            f => (Path.GetExtension(f) == ".jpeg" || Path.GetExtension(f) == ".pdf")
+            && !Path.GetFileNameWithoutExtension(f).Contains(".send")).ToList();
         if (fotos.Any())
         {
             if (fotos.Count > 5) fotos = fotos.Take(5).ToList();
