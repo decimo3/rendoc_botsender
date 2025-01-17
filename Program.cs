@@ -64,7 +64,7 @@ static void DeleteOlderDriverFile()
 }
 static void UnzipChromeDriverFile()
 {
-    var current_folder = System.IO.Directory.GetCurrentDirectory();
+    var current_folder = System.AppContext.BaseDirectory;
     System.IO.Compression.ZipFile.ExtractToDirectory("chromedriver-win64.zip", current_folder);
 }
 static void Update(String chromepath, String driverpath)
@@ -223,9 +223,10 @@ static void Main()
 {
     try
     {
-        var corrente = System.IO.Directory.GetCurrentDirectory();
+        var corrente = System.AppContext.BaseDirectory;
         var driverpath = System.IO.Path.Combine(corrente, "chromedriver-win64/chromedriver.exe");
-        var configuracoes = ArquivoConfiguracao("doc.conf", '=');
+        var configuracoes = ArquivoConfiguracao(
+            System.IO.Path.Combine(System.AppContext.BaseDirectory, "doc.conf"), '=');
         Update(configuracoes["GCHROME"], driverpath);
         var website = $"http://{configuracoes["USUARIO"]}:{configuracoes["PALAVRA"]}@{configuracoes["BASEURL"]}/ren/";
         var profundidade = Int32.Parse(configuracoes["PROFUNDIDADE"]) - 1;
