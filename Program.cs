@@ -190,7 +190,7 @@ static void PrepararArquivos(WebDriver driver, String diretorio)
     while (true)
     {
         fotos = Directory.GetFiles(diretorio).Where(
-            f => (Path.GetExtension(f) == ".jpeg" || Path.GetExtension(f) == ".pdf")
+            f => (Path.GetExtension(f) == ".jpeg" || Path.GetExtension(f) == ".jpg")
             && !Path.GetFileNameWithoutExtension(f).Contains(".send")).ToList();
         if (fotos.Any())
         {
