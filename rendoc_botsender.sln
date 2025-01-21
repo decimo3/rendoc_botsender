@@ -1,9 +1,8 @@
-﻿
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.5.002.0
+VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "rendoc_botsender", "rendoc_botsender.csproj", "{B293497F-ED64-4D8B-8B4D-AD54C7FBF407}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "rendoc_botsender", "src\rendoc_botsender.csproj", "{84B39B19-85E7-BF3F-1206-8322640D244D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +10,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{B293497F-ED64-4D8B-8B4D-AD54C7FBF407}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B293497F-ED64-4D8B-8B4D-AD54C7FBF407}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B293497F-ED64-4D8B-8B4D-AD54C7FBF407}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B293497F-ED64-4D8B-8B4D-AD54C7FBF407}.Release|Any CPU.Build.0 = Release|Any CPU
+		{84B39B19-85E7-BF3F-1206-8322640D244D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{84B39B19-85E7-BF3F-1206-8322640D244D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{84B39B19-85E7-BF3F-1206-8322640D244D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{84B39B19-85E7-BF3F-1206-8322640D244D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {02D5C92D-E367-4E9E-BEEB-46C32F2EE6DB}
+		SolutionGuid = {D7939E96-ABA3-4391-8ED5-B909869E6F6A}
 	EndGlobalSection
 EndGlobal
