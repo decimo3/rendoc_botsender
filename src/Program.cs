@@ -87,6 +87,48 @@ namespace docbot
                 NavegacaoPastas(pasta, profundidade_atual + 1, profundidade_maxima);
             }
         }
-
+        public void ChecarUpload
+        (
+        )
+        {
+            var arquivo_lista_de_notas = System.IO.Path.Combine(
+                System.AppContext.BaseDirectory, "rendoc.txt");
+            var lista_de_notas = new List<Int64>();
+            var texto_resultado = new System.Text.StringBuilder();
+            if(!System.IO.File.Exists(arquivo_lista_de_notas))
+            {
+                return;
+            }
+            foreach (var linha in System.IO.File.ReadAllLines(arquivo_lista_de_notas))
+            {
+                if(String.IsNullOrEmpty(linha))
+                {
+                    continue;
+                }
+                if(!Int64.TryParse(linha, out Int64 result))
+                {
+                    throw new ArgumentException($"Há caracteres inválidos na lista de notas:\n{linha}");
+                }
+                lista_de_notas.Add(result);
+            }
+            texto_resultado.Append("Status;Nota;Qnt\n");
+            foreach (var nota in lista_de_notas)
+            {
+                var quantidade_de_arquivos_no_sistema = handler.ChecarArquivos(nota);
+                if (quantidade_de_arquivos_no_sistema < 1)
+                    texto_resultado.Append("WARN;");
+                else
+                    texto_resultado.Append("DONE;");
+                texto_resultado.Append(nota);
+                texto_resultado.Append($";{quantidade_de_arquivos_no_sistema}\n");
+            }
+            var texto_resultado_consolidado = texto_resultado.ToString();
+            System.IO.File.WriteAllText(
+                System.IO.Path.Combine(AppContext.BaseDirectory, "ofs.csv"),
+                texto_resultado_consolidado
+            );
+            System.IO.File.Delete(arquivo_lista_de_notas);
+            Helpers.ConsoleWrapper(texto_resultado_consolidado);
+        }
     }
 }
