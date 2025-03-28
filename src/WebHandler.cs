@@ -62,6 +62,35 @@ namespace docbot
                 System.IO.File.Move(file, Path.Combine(dir, newfilename));
             }
         }
+        public Int32 ChecarArquivos
+        (
+            Int64 nota
+        )
+        {
+            if (driver.FindElement(By.Id("titulo")).Text != "Página de Pesquisa")
+            {
+                driver.FindElement(By.Name("BtnPesquisar")).Click();
+            }
+            driver.FindElement(By.Name("TxtNF")).Clear();
+            driver.FindElement(By.Name("TxtNF")).SendKeys(nota.ToString());
+            driver.FindElement(By.Name("BtnPesquisar")).Click();
+            Thread.Sleep(500);
+            var arvore_principal = driver.FindElements(By.Id("TreeView1t0")).SingleOrDefault();
+            if(arvore_principal == null)
+            {
+                return 0;
+            }
+            if(arvore_principal.Text == "Nenhum documento encontrado")
+            {
+                return 0;
+            }
+            var lista = driver.FindElements(By.Id("TreeView1n2Nodes")).SingleOrDefault();
+            if(lista == null)
+            {
+                return 0;
+            }
+            return lista.FindElements(By.TagName("table")).Count;
+        }
         public void Dispose()
         {
             Dispose(true);
