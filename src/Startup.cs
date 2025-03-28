@@ -23,8 +23,10 @@ namespace docbot
                     website: website,
                     baseurl: configuracoes["BASEURL"]
                 );
-                Helpers.ConsoleWrapper("Iniciando a navegação automatizada...");
                 var program = new Program(handler);
+                Helpers.ConsoleWrapper("Iniciando a checagem de uploads...");
+                program.ChecarUpload();
+                Helpers.ConsoleWrapper("Iniciando a navegação automatizada...");
                 program.NavegacaoPastas(configuracoes["CAMINHO"], 0, profundidade);
             }
             catch (System.Exception erro)
