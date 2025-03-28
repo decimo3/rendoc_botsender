@@ -124,7 +124,7 @@ namespace docbot
             }
             var texto_resultado_consolidado = texto_resultado.ToString();
             System.IO.File.WriteAllText(
-                System.IO.Path.Combine(AppContext.BaseDirectory, "ofs.csv"),
+                System.IO.Path.Combine(AppContext.BaseDirectory, "rendoc.csv"),
                 texto_resultado_consolidado
             );
             System.IO.File.Delete(arquivo_lista_de_notas);
