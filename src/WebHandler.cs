@@ -1,10 +1,14 @@
 using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium.Remote;
 using OpenQA.Selenium.Support.UI;
+
 namespace docbot
 {
     public class WebHandler : IDisposable
     {
+        private const int DEFAULT_PORT = 7826;
+        private readonly TimeSpan DEFAULT_TIMEOUT = TimeSpan.FromMinutes(3);
         private ChromeDriver? driver;
         public WebHandler
         (
@@ -16,13 +20,21 @@ namespace docbot
         )
         {
             var service = ChromeDriverService.CreateDefaultService(driverpath);
+            service.Port = DEFAULT_PORT;
+            service.Start();
+
             var options = new ChromeOptions();
             options.BinaryLocation = chromepath;
             options.AddArgument($"--user-data-dir={data_folder}");
             options.AddArgument($"--app={website}");
             options.AddArgument($"--unsafely-treat-insecure-origin-as-secure={baseurl}");
-            this.driver = new ChromeDriver(service, options);
+
+            this.driver = new RemoteWebDriver(
+                new Uri($"http://localhost:{DEFAULT_PORT}/"),
+                options.ToCapabilities(),
+                DEFAULT_TIMEOUT);
             this.driver.Manage().Window.Maximize();
+
             Helpers.ConsoleWrapper("Aguardando a liberação da página...");
             while (!driver.FindElements(By.Id("titulo")).Any())
             {
