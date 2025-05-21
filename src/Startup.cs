@@ -10,7 +10,7 @@ namespace docbot
             try
             {
                 var corrente = System.AppContext.BaseDirectory;
-                var driverpath = System.IO.Path.Combine(corrente, "chromedriver-win64/chromedriver.exe");
+                var driverpath = System.IO.Path.Combine(corrente, "chromedriver-win64", "chromedriver.exe");
                 var configuracoes = Helpers.ArquivoConfiguracao(
                     System.IO.Path.Combine(System.AppContext.BaseDirectory, "doc.conf"), '=');
                 Updater.Update(configuracoes["GCHROME"], driverpath);
@@ -21,7 +21,7 @@ namespace docbot
                     driverpath: driverpath,
                     data_folder: System.IO.Path.Combine(corrente, "tmp"),
                     website: website,
-                    baseurl: configuracoes["BASEURL"]
+                    baseurl: $"http://{configuracoes["BASEURL"]}"
                 );
                 var program = new Program(handler);
                 Helpers.ConsoleWrapper("Iniciando a checagem de uploads...");

@@ -1,4 +1,5 @@
 using OpenQA.Selenium;
+using System.Text.RegularExpressions;
 
 namespace docbot
 {
@@ -15,7 +16,7 @@ namespace docbot
         )
         {
             var basename = diretorio.Split('\\').Last();
-            var argumentos = basename.Split(' ');
+            var argumentos = Regex.Split(basename, @"\s+");
             if (argumentos.Length < 3)
             {
                 Helpers.ConsoleWrapper($"Diretório {basename} fora do padrão!");
