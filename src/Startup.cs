@@ -21,7 +21,7 @@ namespace docbot
                     driverpath: driverpath,
                     data_folder: System.IO.Path.Combine(corrente, "tmp"),
                     website: website,
-                    baseurl: configuracoes["BASEURL"]
+                    baseurl: $"http://{configuracoes["BASEURL"]}"
                 );
                 var program = new Program(handler);
                 Helpers.ConsoleWrapper("Iniciando a checagem de uploads...");
