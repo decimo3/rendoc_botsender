@@ -5,6 +5,9 @@ using OpenQA.Selenium.Support.UI;
 
 namespace docbot
 {
+    /// <summary>
+    /// Responsável por manipular a automação web utilizando Selenium WebDriver para envio e verificação de arquivos em uma aplicação web.
+    /// </summary>
     public class WebHandler : IDisposable
     {
         private const int DEFAULT_PORT = 7826;
@@ -12,6 +15,16 @@ namespace docbot
         private readonly ChromeDriverService service;
         private readonly ChromeOptions options;
         private readonly IWebDriver driver;
+
+        /// <summary>
+        /// Inicializa uma nova instância de <see cref="WebHandler"/>, configurando o serviço do ChromeDriver e inicializando o navegador.
+        /// </summary>
+        /// <param name="chromepath">Caminho para o executável do Google Chrome.</param>
+        /// <param name="driverpath">Caminho para o driver do Chrome.</param>
+        /// <param name="data_folder">Pasta de dados do usuário para o Chrome.</param>
+        /// <param name="website">URL do site a ser acessado.</param>
+        /// <param name="baseurl">URL base considerada segura para o navegador.</param>
+        /// <exception cref="FileNotFoundException">Lançada se o executável do Chrome não for encontrado.</exception>
         public WebHandler
         (
             String chromepath,
@@ -45,6 +58,14 @@ namespace docbot
                 Thread.Sleep(1_000);
             }
         }
+
+        /// <summary>
+        /// Envia arquivos para a aplicação web preenchendo os campos necessários e interagindo com a interface.
+        /// </summary>
+        /// <param name="nota">Número da nota de serviço.</param>
+        /// <param name="inst">Número da instalação.</param>
+        /// <param name="option">Tipo de documento selecionado.</param>
+        /// <param name="files">Lista de caminhos dos arquivos a serem enviados.</param>
         public void EnviarArquivos
         (
             String nota,
@@ -78,6 +99,12 @@ namespace docbot
                 System.IO.File.Move(file, Path.Combine(dir, newfilename));
             }
         }
+
+        /// <summary>
+        /// Verifica a quantidade de arquivos/documentos associados a uma nota na aplicação web.
+        /// </summary>
+        /// <param name="nota">Número da nota de serviço a ser pesquisada.</param>
+        /// <returns>Quantidade de arquivos/documentos encontrados.</returns>
         public Int32 ChecarArquivos
         (
             Int64 nota
@@ -107,11 +134,20 @@ namespace docbot
             }
             return lista.FindElements(By.TagName("table")).Count;
         }
+
+        /// <summary>
+        /// Libera os recursos utilizados pelo <see cref="WebHandler"/>.
+        /// </summary>
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
+
+        /// <summary>
+        /// Libera os recursos gerenciados e não gerenciados utilizados pela instância.
+        /// </summary>
+        /// <param name="disposing">Indica se os recursos gerenciados devem ser liberados.</param>
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
