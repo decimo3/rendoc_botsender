@@ -9,7 +9,9 @@ namespace docbot
     {
         private const int DEFAULT_PORT = 7826;
         private readonly TimeSpan DEFAULT_TIMEOUT = TimeSpan.FromMinutes(3);
-        private ChromeDriver? driver;
+        private readonly ChromeDriverService service;
+        private readonly ChromeOptions options;
+        private readonly IWebDriver driver;
         public WebHandler
         (
             String chromepath,
@@ -19,17 +21,19 @@ namespace docbot
             String baseurl
         )
         {
-            var service = ChromeDriverService.CreateDefaultService(driverpath);
+            if (!System.IO.File.Exists(chromepath) || !System.IO.File.Exists(driverpath))
+                throw new FileNotFoundException($"O arquivo {chromepath} não foi encontrado!");
+            service = ChromeDriverService.CreateDefaultService(driverpath);
             service.Port = DEFAULT_PORT;
             service.Start();
 
-            var options = new ChromeOptions();
+            options = new ChromeOptions();
             options.BinaryLocation = chromepath;
             options.AddArgument($"--user-data-dir={data_folder}");
             options.AddArgument($"--app={website}");
             options.AddArgument($"--unsafely-treat-insecure-origin-as-secure={baseurl}");
 
-            this.driver = new RemoteWebDriver(
+            driver = new RemoteWebDriver(
                 new Uri($"http://localhost:{DEFAULT_PORT}/"),
                 options.ToCapabilities(),
                 DEFAULT_TIMEOUT);
@@ -116,7 +120,7 @@ namespace docbot
                 {
                     driver.Quit();
                     driver.Dispose();
-                    driver = null;
+                    service.Dispose();
                 }
             }
         }
